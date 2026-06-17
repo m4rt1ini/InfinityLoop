@@ -77,7 +77,8 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
         if proc.returncode != 0:
             raise Exception(f"FFmpeg Error in {stage_name}")
 
-    if audio_offset > 0.0:
+    needs_pre_wrap = (audio_offset > 0.0) and (mode != "crossdissolve")
+    if needs_pre_wrap:
         if orig_duration > audio_offset:
             wrapped_input = tempfile.mktemp(suffix=".mp4")
             filter_str = (
@@ -137,37 +138,59 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
                 pass
                 
         elif mode == "crossdissolve":
-            duration = get_video_duration(input_path)
+            duration = orig_duration
             if duration > 0:
                 crossfade_duration = min(float(crossfade_duration), duration / 2.0)
-            offset = max(0, duration - crossfade_duration)
+            offset_val = max(0, duration - crossfade_duration)
             
-            if loops <= 1:
+            total_dur = duration + offset_val * (loops - 1)
+            
+            if loops <= 1 and audio_offset == 0.0:
                 cmd = ["ffmpeg", "-y", "-i", input_path, "-c", "copy", output_path]
                 run_ffmpeg(cmd, "Kopiere Originalvideo...", duration)
                 return output_path
                 
+            import math
+            vid_loops = loops
+            if audio_offset > 0.0:
+                extra_loops = math.ceil(audio_offset / offset_val) if offset_val > 0 else 1
+                aud_loops = loops + extra_loops
+            else:
+                aud_loops = loops
+                
+            total_inputs = max(vid_loops, aud_loops)
             cmd = ["ffmpeg", "-y"]
-            for _ in range(loops):
+            for _ in range(total_inputs):
                 cmd.extend(["-i", input_path])
                 
             filter_str = ""
-            v_out = "[0:v]"
-            a_out = "[0:a]"
             
-            for i in range(1, loops):
-                current_offset = offset * i
-                filter_str += f"{v_out}[{i}:v]xfade=transition=fade:duration={crossfade_duration}:offset={current_offset}[v{i}]; "
-                filter_str += f"{a_out}[{i}:a]acrossfade=d={crossfade_duration}[a{i}]; "
-                v_out = f"[v{i}]"
-                a_out = f"[a{i}]"
+            if vid_loops > 1:
+                v_out = "[0:v]"
+                for i in range(1, vid_loops):
+                    current_offset = offset_val * i
+                    filter_str += f"{v_out}[{i}:v]xfade=transition=fade:duration={crossfade_duration}:offset={current_offset}[v{i}]; "
+                    v_out = f"[v{i}]"
+            else:
+                v_out = "[0:v]"
+                
+            if aud_loops > 1:
+                a_out = "[0:a]"
+                for i in range(1, aud_loops):
+                    filter_str += f"{a_out}[{i}:a]acrossfade=d={crossfade_duration}[a{i}]; "
+                    a_out = f"[a{i}]"
+            else:
+                a_out = "[0:a]"
+                
+            if audio_offset > 0.0:
+                filter_str += f"{a_out}atrim=start={audio_offset}:end={audio_offset + total_dur},asetpts=PTS-STARTPTS[afinal]; "
+                a_out = "[afinal]"
                 
             cmd.extend([
                 "-filter_complex", filter_str.strip(),
                 "-map", v_out, "-map", a_out
             ] + encoder_args + ["-c:a", "aac", output_path])
             
-            total_dur = duration + (duration - crossfade_duration) * (loops - 1)
             run_ffmpeg(cmd, "Rendere weiche Crossdissolve Übergänge...", total_dur)
             
     finally:
