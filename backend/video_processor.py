@@ -141,57 +141,74 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
             duration = orig_duration
             if duration > 0:
                 crossfade_duration = min(float(crossfade_duration), duration / 2.0)
-            offset_val = max(0, duration - crossfade_duration)
-            
-            total_dur = duration + offset_val * (loops - 1)
             
             if loops <= 1 and audio_offset == 0.0:
                 cmd = ["ffmpeg", "-y", "-i", input_path, "-c", "copy", output_path]
                 run_ffmpeg(cmd, "Kopiere Originalvideo...", duration)
                 return output_path
                 
+            T = duration / 2.0
+            seamless_base = tempfile.mktemp(suffix=".mp4")
+            
+            offset_val = T - crossfade_duration
+            base_dur = duration - crossfade_duration
+            
+            filter_str = (
+                f"[0:v]setpts=PTS-STARTPTS,trim=start={T}:end={duration},setpts=PTS-STARTPTS[v2]; "
+                f"[0:v]setpts=PTS-STARTPTS,trim=start=0:end={T},setpts=PTS-STARTPTS[v1]; "
+                f"[v2][v1]xfade=transition=fade:duration={crossfade_duration}:offset={offset_val}[vout]; "
+                
+                f"[0:a]asetpts=PTS-STARTPTS,atrim=start={T}:end={duration},asetpts=PTS-STARTPTS[a2]; "
+                f"[0:a]asetpts=PTS-STARTPTS,atrim=start=0:end={T},asetpts=PTS-STARTPTS[a1]; "
+                f"[a2][a1]acrossfade=d={crossfade_duration}[aout]"
+            )
+            
+            cmd_base = [
+                "ffmpeg", "-y", "-i", input_path,
+                "-filter_complex", filter_str,
+                "-map", "[vout]", "-map", "[aout]"
+            ] + encoder_args + ["-c:a", "aac", seamless_base]
+            
+            run_ffmpeg(cmd_base, "Generiere Seamless Base Block...", base_dur)
+            
+            total_dur = base_dur * loops
+            
             import math
-            vid_loops = loops
+            list_file_path = tempfile.mktemp(suffix=".txt")
+            
             if audio_offset > 0.0:
-                extra_loops = math.ceil(audio_offset / offset_val) if offset_val > 0 else 1
+                extra_loops = math.ceil(audio_offset / base_dur) if base_dur > 0 else 1
                 aud_loops = loops + extra_loops
+                total_concat_loops = aud_loops
             else:
-                aud_loops = loops
+                total_concat_loops = loops
                 
-            total_inputs = max(vid_loops, aud_loops)
-            cmd = ["ffmpeg", "-y"]
-            for _ in range(total_inputs):
-                cmd.extend(["-i", input_path])
-                
-            filter_str = ""
+            with open(list_file_path, "w", encoding="utf-8") as f:
+                for _ in range(total_concat_loops):
+                    f.write(f"file '{os.path.abspath(seamless_base).replace(chr(92), '/')}'\n")
             
-            if vid_loops > 1:
-                v_out = "[0:v]"
-                for i in range(1, vid_loops):
-                    current_offset = offset_val * i
-                    filter_str += f"{v_out}[{i}:v]xfade=transition=fade:duration={crossfade_duration}:offset={current_offset}[v{i}]; "
-                    v_out = f"[v{i}]"
-            else:
-                v_out = "[0:v]"
-                
-            if aud_loops > 1:
-                a_out = "[0:a]"
-                for i in range(1, aud_loops):
-                    filter_str += f"{a_out}[{i}:a]acrossfade=d={crossfade_duration}[a{i}]; "
-                    a_out = f"[a{i}]"
-            else:
-                a_out = "[0:a]"
-                
             if audio_offset > 0.0:
-                filter_str += f"{a_out}atrim=start={audio_offset}:end={audio_offset + total_dur},asetpts=PTS-STARTPTS[afinal]; "
-                a_out = "[afinal]"
+                cmd_final = [
+                    "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+                    "-i", list_file_path,
+                    "-filter_complex", f"[0:a]atrim=start={audio_offset}:end={audio_offset + total_dur},asetpts=PTS-STARTPTS[aout]",
+                    "-map", "0:v", "-map", "[aout]",
+                    "-t", str(total_dur),
+                    "-c:v", "copy", "-c:a", "aac", output_path
+                ]
+                run_ffmpeg(cmd_final, "Setze Loops und Audio-Offset zusammen...", total_dur)
+            else:
+                cmd_final = [
+                    "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+                    "-i", list_file_path, "-c", "copy", output_path
+                ]
+                run_ffmpeg(cmd_final, "Kopiere Seamless Loops...", total_dur)
                 
-            cmd.extend([
-                "-filter_complex", filter_str.strip(),
-                "-map", v_out, "-map", a_out
-            ] + encoder_args + ["-c:a", "aac", output_path])
-            
-            run_ffmpeg(cmd, "Rendere weiche Crossdissolve Übergänge...", total_dur)
+            os.remove(list_file_path)
+            try:
+                os.remove(seamless_base)
+            except:
+                pass
             
     finally:
         if wrapped_input and os.path.exists(wrapped_input):
