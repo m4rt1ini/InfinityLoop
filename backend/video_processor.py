@@ -148,7 +148,7 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
                 return output_path
                 
             T = duration / 2.0
-            seamless_base = tempfile.mktemp(suffix=".mp4")
+            seamless_base = tempfile.mktemp(suffix=".mkv")
             
             offset_val = T - crossfade_duration
             base_dur = duration - crossfade_duration
@@ -167,7 +167,7 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
                 "ffmpeg", "-y", "-i", input_path,
                 "-filter_complex", filter_str,
                 "-map", "[vout]", "-map", "[aout]"
-            ] + encoder_args + ["-c:a", "aac", seamless_base]
+            ] + encoder_args + ["-c:a", "pcm_s16le", seamless_base]
             
             run_ffmpeg(cmd_base, "Generiere Seamless Base Block...", base_dur)
             
