@@ -53,7 +53,7 @@ def get_best_encoder(target_codec="h264"):
 
     return ["-c:v", cpu_codec] + cpu_args
 
-def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, audio_offset=0.0, codec="h264", progress_callback=None):
+def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, audio_offset=0.0, codec="h264", audio_curve="qsin", progress_callback=None):
     audio_offset = float(audio_offset)
     wrapped_input = None
     encoder_args = get_best_encoder(codec)
@@ -160,7 +160,7 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
                 
                 f"[0:a]asetpts=PTS-STARTPTS,atrim=start={T}:end={duration},asetpts=PTS-STARTPTS[a2]; "
                 f"[0:a]asetpts=PTS-STARTPTS,atrim=start=0:end={T},asetpts=PTS-STARTPTS[a1]; "
-                f"[a2][a1]acrossfade=d={crossfade_duration}[aout]"
+                f"[a2][a1]acrossfade=d={crossfade_duration}:curve1={audio_curve}:curve2={audio_curve}[aout]"
             )
             
             cmd_base = [

@@ -69,7 +69,8 @@ async def process_video_endpoint(
     loops: int = Form(1),
     crossfade_duration: float = Form(1.0),
     audio_offset: float = Form(0.0),
-    codec: str = Form("h264")
+    codec: str = Form("h264"),
+    audio_curve: str = Form("qsin")
 ):
     if not input_path or not os.path.exists(input_path):
         return {"error": "Eingabedatei wurde nicht gefunden."}
@@ -85,7 +86,7 @@ async def process_video_endpoint(
                 tasks[task_id]["progress"] = p
                 if s: tasks[task_id]["status"] = s
 
-            process_video(input_path, output_path, mode, loops, crossfade_duration, audio_offset, codec, on_progress)
+            process_video(input_path, output_path, mode, loops, crossfade_duration, audio_offset, codec, audio_curve, on_progress)
             tasks[task_id]["progress"] = 100
             tasks[task_id]["status"] = "Abgeschlossen!"
         except Exception as e:

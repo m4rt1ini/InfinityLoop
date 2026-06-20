@@ -29,8 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
         radio.addEventListener('change', (e) => {
             if (e.target.value === 'crossdissolve') {
                 crossfadeGroup.style.display = 'block';
+                document.getElementById('audio-curve-group').style.display = 'block';
             } else {
                 crossfadeGroup.style.display = 'none';
+                document.getElementById('audio-curve-group').style.display = 'none';
             }
         });
     });
@@ -94,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const crossfade = crossfadeInput.value;
         const audioOffset = audioOffsetInput.value;
         const codec = document.getElementById('codec-select').value;
+        const audioCurve = document.getElementById('audio-curve') ? document.getElementById('audio-curve').value : 'qsin';
 
         const formData = new URLSearchParams();
         formData.append('input_path', inputPathField.value);
@@ -103,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('crossfade_duration', crossfade);
         formData.append('audio_offset', audioOffset);
         formData.append('codec', codec);
+        formData.append('audio_curve', audioCurve);
 
         // UI Loading state
         const btnText = generateBtn.querySelector('.btn-text');

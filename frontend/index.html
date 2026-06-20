@@ -56,6 +56,14 @@
                 <input type="range" id="crossfade" min="0.1" max="5.0" step="0.1" value="1.0">
             </div>
 
+            <div class="setting-group" id="audio-curve-group" style="display: none;">
+                <label for="audio-curve">Audio-Überblendung (Kurve)</label>
+                <select id="audio-curve" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--panel-border); background: rgba(0,0,0,0.3); color: var(--text-main); font-size: 1rem; cursor: pointer; font-family: inherit;">
+                    <option value="qsin" selected>Equal Power (Konstante Lautstärke für Natur/Rauschen)</option>
+                    <option value="tri">Linear (Standard für Musik)</option>
+                </select>
+            </div>
+
             <div class="setting-group" id="audio-offset-group">
                 <label for="audio-offset">Audio-Versatz (Asynchroner Schnitt, Sek.): <span id="audio-offset-val">0.0</span></label>
                 <input type="range" id="audio-offset" min="0.0" max="5.0" step="0.1" value="0.0">
