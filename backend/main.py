@@ -27,14 +27,15 @@ app.add_middleware(
 tasks = {}
 
 @app.get("/select-input")
-def select_input():
-    script = """import tkinter as tk
+def select_input(lang: str = "de"):
+    title = "Select Source Video" if lang == "en" else "Eingabevideo waehlen"
+    script = f"""import tkinter as tk
 from tkinter import filedialog
 import sys
 root = tk.Tk()
 root.withdraw()
 root.attributes('-topmost', True)
-path = filedialog.askopenfilename(filetypes=[('Video', '*.mp4 *.mov *.avi *.mkv *.webm')], title='Eingabevideo waehlen')
+path = filedialog.askopenfilename(filetypes=[('Video', '*.mp4 *.mov *.avi *.mkv *.webm')], title='{title}')
 root.destroy()
 sys.stdout.write(path)"""
     try:
@@ -44,14 +45,15 @@ sys.stdout.write(path)"""
         return {"error": str(e)}
 
 @app.get("/select-path")
-def select_path():
-    script = """import tkinter as tk
+def select_path(lang: str = "de"):
+    title = "Select Output Location" if lang == "en" else "Speicherort waehlen"
+    script = f"""import tkinter as tk
 from tkinter import filedialog
 import sys
 root = tk.Tk()
 root.withdraw()
 root.attributes('-topmost', True)
-path = filedialog.asksaveasfilename(defaultextension='.mp4', filetypes=[('MP4 Video', '*.mp4')], title='Speicherort waehlen')
+path = filedialog.asksaveasfilename(defaultextension='.mp4', filetypes=[('MP4 Video', '*.mp4')], title='{title}')
 root.destroy()
 sys.stdout.write(path)"""
     try:

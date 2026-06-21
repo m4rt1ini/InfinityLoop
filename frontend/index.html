@@ -18,8 +18,14 @@
     
     <div class="container glass-panel">
         <header>
+            <div style="position: absolute; top: 1.5rem; right: 1.5rem;">
+                <select id="lang-switcher" style="padding: 0.5rem; border-radius: 6px; border: 1px solid var(--panel-border); background: rgba(0,0,0,0.5); color: var(--text-main); font-size: 0.9rem; cursor: pointer; font-weight: 600;">
+                    <option value="en">EN</option>
+                    <option value="de">DE</option>
+                </select>
+            </div>
             <h1>Infinity<span>Loop</span></h1>
-            <p>Der modernste Video-Loop-Generator der Welt.</p>
+            <p data-i18n="app_desc">Der modernste Video-Loop-Generator der Welt.</p>
         </header>
 
         <!-- Nativer Input Dialog im alten Upload-Design -->
@@ -30,68 +36,68 @@
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <span style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);">Quellvideo auswählen</span>
-                <span id="input-path-display" style="font-size: 0.9rem; color: var(--primary);">Klicke hier, um ein Video zu laden</span>
+                <span data-i18n="select_input_title" style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);">Quellvideo auswählen</span>
+                <span id="input-path-display" data-i18n="select_input_subtitle" style="font-size: 0.9rem; color: var(--primary);">Klicke hier, um ein Video zu laden</span>
                 <input type="hidden" id="input-path">
             </div>
         </div>
 
         <div class="settings-section">
             <div class="setting-group">
-                <label>Loop-Modus</label>
+                <label data-i18n="loop_mode_label">Loop-Modus</label>
                 <div class="radio-group">
                     <input type="radio" id="mode-hardcut" name="mode" value="hardcut" checked>
-                    <label for="mode-hardcut">Hardcut</label>
+                    <label for="mode-hardcut" data-i18n="mode_hardcut">Hardcut</label>
                     
                     <input type="radio" id="mode-pingpong" name="mode" value="pingpong">
-                    <label for="mode-pingpong">Ping-Pong</label>
+                    <label for="mode-pingpong" data-i18n="mode_pingpong">Ping-Pong</label>
                     
                     <input type="radio" id="mode-crossdissolve" name="mode" value="crossdissolve">
-                    <label for="mode-crossdissolve">Crossfade</label>
+                    <label for="mode-crossdissolve" data-i18n="mode_crossfade">Crossfade</label>
                 </div>
             </div>
 
             <div class="setting-group" id="crossfade-group" style="display: none;">
-                <label for="crossfade">Crossfade-Dauer (Sek.): <span id="crossfade-val">1.0</span></label>
+                <label for="crossfade"><span data-i18n="crossfade_duration">Crossfade-Dauer (Sek.):</span> <span id="crossfade-val">1.0</span></label>
                 <input type="range" id="crossfade" min="0.1" max="5.0" step="0.1" value="1.0">
             </div>
 
             <div class="setting-group" id="audio-curve-group" style="display: none;">
-                <label for="audio-curve">Audio-Überblendung (Kurve)</label>
+                <label for="audio-curve" data-i18n="audio_curve_label">Audio-Überblendung (Kurve)</label>
                 <select id="audio-curve" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--panel-border); background: rgba(0,0,0,0.3); color: var(--text-main); font-size: 1rem; cursor: pointer; font-family: inherit;">
-                    <option value="qsin" selected>Equal Power (Konstante Lautstärke für Natur/Rauschen)</option>
-                    <option value="tri">Linear (Standard für Musik)</option>
+                    <option value="qsin" selected data-i18n="audio_curve_qsin">Equal Power (Konstante Lautstärke für Natur/Rauschen)</option>
+                    <option value="tri" data-i18n="audio_curve_tri">Linear (Standard für Musik)</option>
                 </select>
             </div>
 
             <div class="setting-group" id="audio-offset-group">
-                <label for="audio-offset">Audio-Versatz (Asynchroner Schnitt, Sek.): <span id="audio-offset-val">0.0</span></label>
+                <label for="audio-offset"><span data-i18n="audio_offset_label">Audio-Versatz (Asynchroner Schnitt, Sek.):</span> <span id="audio-offset-val">0.0</span></label>
                 <input type="range" id="audio-offset" min="0.0" max="5.0" step="0.1" value="0.0">
             </div>
 
             <div class="setting-group">
-                <label for="codec-select">Ziel-Codec</label>
+                <label for="codec-select" data-i18n="codec_label">Ziel-Codec</label>
                 <select id="codec-select" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--panel-border); background: rgba(0,0,0,0.3); color: var(--text-main); font-size: 1rem; cursor: pointer; font-family: inherit;">
-                    <option value="h264" selected>H.264 (Maximale Kompatibilität)</option>
-                    <option value="hevc">HEVC / H.265 (Bessere Kompression)</option>
-                    <option value="av1">AV1 (Beste Kompression, Next-Gen)</option>
+                    <option value="h264" selected data-i18n="codec_h264">H.264 (Maximale Kompatibilität)</option>
+                    <option value="hevc" data-i18n="codec_hevc">HEVC / H.265 (Bessere Kompression)</option>
+                    <option value="av1" data-i18n="codec_av1">AV1 (Beste Kompression, Next-Gen)</option>
                 </select>
             </div>
             
             <div class="setting-group">
-                <label for="loops">Anzahl der Loops: <span id="loop-count-val">1</span></label>
+                <label for="loops"><span data-i18n="loop_count_label">Anzahl der Loops:</span> <span id="loop-count-val">1</span></label>
                 <input type="range" id="loops" min="1" max="50" step="1" value="1">
             </div>
             
             <div class="setting-group">
-                <label>Speicherort</label>
+                <label data-i18n="output_path_label">Speicherort</label>
                 <button class="secondary-btn" id="select-path-btn" type="button">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                         <polyline points="17 21 17 13 7 13 7 21"></polyline>
                         <polyline points="7 3 7 8 15 8"></polyline>
                     </svg>
-                    Speicherort wählen
+                    <span data-i18n="select_path_btn">Speicherort wählen</span>
                 </button>
                 <input type="hidden" id="output-path">
                 <div id="output-path-display" style="text-align: center; margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent-1); word-break: break-all;"></div>
@@ -101,7 +107,7 @@
         <!-- Live Progress Section -->
         <div id="progress-container" style="display: none; margin-top: 1.5rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--panel-border);">
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.8rem;">
-                <span id="progress-status" style="color: var(--primary); font-weight: 600;">Warte...</span>
+                <span id="progress-status" data-i18n="status_wait" style="color: var(--primary); font-weight: 600;">Warte...</span>
                 <span id="progress-percent" style="color: var(--text-main); font-weight: 600;">0%</span>
             </div>
             <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
@@ -110,7 +116,7 @@
         </div>
 
         <button class="primary-btn" id="generate-btn" style="margin-top: 1.5rem;">
-            <span class="btn-text">Video Generieren</span>
+            <span class="btn-text" data-i18n="btn_generate">Video Generieren</span>
         </button>
         
         <div id="result-section" style="display:none;">
