@@ -105,7 +105,9 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
             
             cmd = [
                 "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-                "-i", list_file_path, "-c", "copy", output_path
+                "-i", list_file_path, "-c", "copy", 
+                "-max_muxing_queue_size", "4096",
+                output_path
             ]
             run_ffmpeg(cmd, "Kopiere Hardcut Loop...", total_dur)
             os.remove(list_file_path)
@@ -128,7 +130,9 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
                     
             cmd = [
                 "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-                "-i", list_file_path, "-c", "copy", output_path
+                "-i", list_file_path, "-c", "copy", 
+                "-max_muxing_queue_size", "4096",
+                output_path
             ]
             run_ffmpeg(cmd, "Setze Ping-Pong Loop zusammen...", total_dur)
             os.remove(list_file_path)
@@ -155,16 +159,16 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
             
             filter_str = (
                 f"[0:v]setpts=PTS-STARTPTS,trim=start={T}:end={duration},setpts=PTS-STARTPTS[v2]; "
-                f"[0:v]setpts=PTS-STARTPTS,trim=start=0:end={T},setpts=PTS-STARTPTS[v1]; "
+                f"[1:v]setpts=PTS-STARTPTS,trim=start=0:end={T},setpts=PTS-STARTPTS[v1]; "
                 f"[v2][v1]xfade=transition=fade:duration={crossfade_duration}:offset={offset_val}[vout]; "
                 
                 f"[0:a]asetpts=PTS-STARTPTS,atrim=start={T}:end={duration},asetpts=PTS-STARTPTS[a2]; "
-                f"[0:a]asetpts=PTS-STARTPTS,atrim=start=0:end={T},asetpts=PTS-STARTPTS[a1]; "
+                f"[1:a]asetpts=PTS-STARTPTS,atrim=start=0:end={T},asetpts=PTS-STARTPTS[a1]; "
                 f"[a2][a1]acrossfade=d={crossfade_duration}:curve1={audio_curve}:curve2={audio_curve}[aout]"
             )
             
             cmd_base = [
-                "ffmpeg", "-y", "-i", input_path,
+                "ffmpeg", "-y", "-i", input_path, "-i", input_path,
                 "-filter_complex", filter_str,
                 "-map", "[vout]", "-map", "[aout]"
             ] + encoder_args + ["-c:a", "pcm_s16le", seamless_base]
@@ -194,13 +198,17 @@ def process_video(input_path, output_path, mode, loops, crossfade_duration=1.0, 
                     "-filter_complex", f"[0:a]atrim=start={audio_offset}:end={audio_offset + total_dur},asetpts=PTS-STARTPTS[aout]",
                     "-map", "0:v", "-map", "[aout]",
                     "-t", str(total_dur),
-                    "-c:v", "copy", "-c:a", "aac", output_path
+                    "-c:v", "copy", "-c:a", "aac", 
+                    "-max_muxing_queue_size", "4096",
+                    output_path
                 ]
                 run_ffmpeg(cmd_final, "Setze Loops und Audio-Offset zusammen...", total_dur)
             else:
                 cmd_final = [
                     "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-                    "-i", list_file_path, "-c", "copy", output_path
+                    "-i", list_file_path, "-c", "copy", 
+                    "-max_muxing_queue_size", "4096",
+                    output_path
                 ]
                 run_ffmpeg(cmd_final, "Kopiere Seamless Loops...", total_dur)
                 
